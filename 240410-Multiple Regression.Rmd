@@ -51,14 +51,9 @@ Fstat = c( MS[1] / MS[2], NA, NA )
 
 data.frame( source, df, SS, MS, Fstat )
 ```
-
-
-
-
-
-
+# Coefficient Table
 ```{r}
-sigma2_hat = sse / ( n - ( p + 1 ) )
+sigma2_hat = SSE / ( n - ( p + 1 ) )
 Sigma_hat = sigma2_hat * (solve( t(X) %*% X) ) 
 
 se.beta_hat = sqrt(diag( Sigma_hat ))
@@ -74,19 +69,71 @@ coef_table = data.frame( estimate = beta_hat,
                          Std.Error = se.beta_hat,
                          t.value = t.value,
                          p.value = round(p.value, 4))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+coef_table
 ```
+
+$$
+H_0: \beta_{\text{lcp}} = \beta_{\text{pgg45}} = 0  \qquad H_1: \text{not} \,\,H_0
+$$
+
+# Reduced model and Full model approach
+$$
+\text{Full model}: \beta_0 + \beta_1 X_1 + \cdots + \beta_8 X_8 \\
+\text{Reduced model}: \beta_0 + \beta_1 X_1 + \cdots + \beta_6 X_6
+$$
+```{r}
+X_r = X[,c(-7,-8)]
+p_r = ncol( X_r ) - 1
+beta_hat_r = solve( t( X_r) %*% X_r ) %*% t(X_r) %*% y 
+y_hat_r = X_r %*% beta_hat_r
+
+resid_r = y - y_hat_r
+SSE_r = sum( ( y - y_hat_r)^ 2 )
+SST_r = SST
+SSR_r = SST_r - SSE_r
+
+Fstat2 = ((SSE_r - SSE) / (p - p_r)) / ( SSE / (n - ( p + 1 )))  
+p.value2 = 2 * pf( Fstat2, df1 = p - p_r, df2 = n - ( p + 1 ), lower.tail = FALSE )
+data.frame( Fstat2, p.value2 )
+```
+
+
+# Matrix C and vector h approach
+```{r}
+C = matrix( c(0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1), nrow = 2, byrow = TRUE)
+h = c( 0, 0 )
+q = 2
+
+Fstat_denom = t(C %*% beta_hat - h) %*% solve( C %*% solve( t(X)%*% X ) %*% t(C) ) %*% ( C %*% beta_hat - h ) / q 
+Fstat_numer =  SSE / ( n - ( p + 1 ) )
+Fstat3 = Fstat_denom / Fstat_numer
+p.value3 = 2 * pf( Fstat3, df1 = q, df2 = n - ( p + 1 ), lower.tail = FALSE )
+
+data.frame( Fstat3, p.value3 )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
