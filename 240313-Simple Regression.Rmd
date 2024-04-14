@@ -1,0 +1,161 @@
+---
+title: "Untitled"
+author: "Kim Gyeong-min"
+date: "2024-04-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(alr4)
+data(Heights)
+M = Heights$mheight
+D = Heights$dheight
+n = length(D)
+
+mean_M = sum(M) / n
+mean_D = sum(D) / n
+
+
+var_M = as.numeric(crossprod(M - mean_M) / ( n - 1))
+var_D = as.numeric(crossprod(D - mean_D) / ( n - 1 ))
+
+
+cov = as.numeric(( t(M - mean_M) %*% (D - mean_D) ) / ( n - 1 ))  # cov / var(M) 회귀계수
+cor = as.numeric(cov / sqrt( var_M * var_D )) 
+```
+
+
+```{r}
+sum((D - mean(D))^2) / (n-1)
+sqrt(var(D))
+
+cov_est = sum((D - mean(D)) * (M - mean(M))) / ( n - 1 )
+var_est_D = sum((D - mean(D))^2) / (n-1)
+var_est_M = sum((M - mean(M))^2) / (n-1)
+
+coe_est = cov_est / sqrt(var_est_D * var_est_M)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+a = 1:3
+a[ c( T, F, T)]
+
+mean( D[ (M > 65.5) & (M < 66.5) ] )
+
+
+#
+head(Heights)
+Heights[D[ (M > 65.5) & (M < 66.5) ], ] # ?
+```
+
+
+```{r}
+# loss function 구하기####################################
+set.seed(6)
+X = rnorm(50)
+Y = 1.5 + 0.1 * X + rnorm(50) * 2  # ? rnorm()
+plot(X, Y)
+
+
+
+loss_func = function(x, y, beta_0, beta_1){
+  return(sum( (y - beta_0 - beta_1 * x)^2 ))
+}
+
+
+loss_func(x = X, y = Y, beta_0 = 5, beta_1 = 0.5)
+```
+
+
+
+
+```{r}
+beta_0 = 5
+beta_1 = 0.5
+
+sum( (Y - beta_0 - beta_1 * X)^2 ) # 몸통 만들기
+
+lossF = function(y, x, beta0, beta1){   # (y,x) 반드시 인풋으로 받게끔 함수 만들기
+   sse = sum( (y - beta0 - beta1 * x)^2 )
+   return(sse)                              # return도 꼭 써주기 그래야 딴사람이 보기 편함
+   
+}
+
+
+loss_func(x = X, y = Y, beta_0 = 5, beta_1 = 0.5)
+loss_func(x = X, y = Y, beta_0 = 3, beta_1 = 0.5)
+loss_func(x = X, y = Y, beta_0 = 1, beta_1 = 0.5)
+loss_func(x = X, y = Y, beta_0 = 0, beta_1 = 0.5)
+
+```
+
+
+
+
+
+```{r}
+vec_beta0 = seq(-5, 5, length.out = 50)
+values_loss = c()
+
+for(i in 1:length(vec_beta0)){
+  values_loss[i] = loss_func(x = X, y = Y, beta_0 = vec_beta0[i], beta_1 = 0.5)
+}
+
+plot(vec_beta0, values_loss, type = "o") # 점도 그려주고 사이도 연결해줌줌
+
+
+which.min(values_loss)  # 인덱스를 반환
+vec_beta0[which.min(values_loss)]
+values_loss[which.min(values_loss)]
+
+
+
+
+vec_beta0 = seq(-5, 5, length.out = 50)       ####해보기 베타0 고정해놓고 베타1에 대해 보기
+values_loss = c()
+```
+
+
+
+
+
+
+```{r}
+######################################################## 베타들 구하기기
+# 베타1 부터 구하기
+Sxx = sum( (X - mean(X) )^2 ) 
+Sxy = sum( (X - mean(X)) * (Y - mean(Y) )) 
+beta1_hat = Sxy / Sxx
+
+
+var_X = sum( (X - mean(X) )^2 ) / ( length(X) - 1 )
+var_Y = sum( (Y - mean(Y) )^2 ) / ( length(Y) - 1 )
+
+cov = sum((X - mean(X) ) * (Y - mean(Y) )) / (length(X) - 1)
+
+beta1_hat2 = cov / var_X
+
+
+
+beta0_hat = mean(Y) - beta1_hat * mean(X)
+
+
+
+# 분상의 추정치 구하기 SSE / (n-2)
+SSE = loss_func(x = X, y =Y, beta_0 = beta0_hat, beta_1 = beta1_hat)
+sigma2_hat = SSE / (length(X) - 2)
+
+
+```
+
+
+
+
+
+
+
+
