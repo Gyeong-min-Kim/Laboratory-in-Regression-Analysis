@@ -4,8 +4,89 @@ author: "Kim Gyeong-min"
 date: "2024-04-14"
 output: html_document
 ---
+# Data
+```{r}
+library(ElemStatLearn)
+data( "prostate" )
+
+n = nrow( prostate )
+y = matrix( prostate$lpsa )
+X = cbind( "(intercept)" = rep(1, n), 
+           "lcavol" = prostate$lcavol,
+           "lweight" = prostate$lweight,
+           "age" = prostate$age,
+           "lbph" = prostate$lbph,
+           "svi" = prostate$svi,
+           "lcp" = prostate$lcp,
+           "pgg45" = prostate$pgg45)
+p = ncol(X) - 1
+
+beta_hat = solve( t(X) %*% X) %*% t(X)%*% y
+```
+
+
+# SSE, SSR, SST 와 $R^2$ 구하기
+```{r}
+y_hat = X %*% beta_hat
+resid = y - y_hat
+
+SSE = sum(resid^2 )
+SST = sum( (y - mean(y))^2 )
+SSR = SST - SSE
+
+R2 = 1 - SSE / SST 
+adjusted_R2 = 1 - ( SSE / ( n - ( p + 1 ) )) / ( SST / ( n - 1) )
+
+```
+
+
+
+# ANOVA Table
+```{r}
+source = c( "Regression", "Error", "Total" )
+df = c( p, n - ( p + 1 ), n - 1 )
+SS = c( SSR, SSE, SST )
+MS = c( SS[1] / df[1], SS[2] / df[2], NA)
+Fstat = c( MS[1] / MS[2], NA, NA )
+
+data.frame( source, df, SS, MS, Fstat )
+```
+
+
+
+
+
 
 ```{r}
+sigma2_hat = sse / ( n - ( p + 1 ) )
+Sigma_hat = sigma2_hat * (solve( t(X) %*% X) ) 
+
+se.beta_hat = sqrt(diag( Sigma_hat ))
+t.value = rep( 0, p + 1 )
+for( i in 1: (p + 1 )){
+  t.value[i] = beta_hat[i] / se.beta_hat[i]
+}
+t.value
+
+p.value = 2*pt( q = abs(t.value), df = n - ( p + 1 ), lower.tail = FALSE )
+
+coef_table = data.frame( estimate = beta_hat,
+                         Std.Error = se.beta_hat,
+                         t.value = t.value,
+                         p.value = round(p.value, 4))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```
 
