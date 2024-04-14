@@ -113,11 +113,40 @@ data.frame( Fstat3, p.value3 )
 ```
 
 
+# Vector a를 이용해 Confidence interval 과 Predict interval 구하기
+```{r}
+a = c( 1, 1.3, 3.6, 64, 0.1, 0.2, -0.2, 25 )
+
+## Confidence interval
+mu0_hat = t(a) %*% beta_hat  
+se.mu0_hat = sqrt(t(a) %*% Sigma_hat %*% a)
+
+qt0.025 = qt( p = 0.025, df = n - ( p + 1 ), lower.tail = FALSE )
+conf.lwr = mu0_hat - se.mu0_hat * qt0.025 
+conf.upr = mu0_hat + se.mu0_hat * qt0.025
+
+data.frame( mu0_hat, conf.lwr, conf.upr )
+
+
+## Predict interval
+Y0_hat = t(a) %*% beta_hat 
+se.Y0_hat = sqrt( t(a) %*% Sigma_hat %*% a + sigma2_hat )
+
+qt0.025 = qt( p = 0.025, df = n - ( p + 1 ), lower.tail = FALSE )
+pred.lwr = Y0_hat - se.Y0_hat * qt0.025 
+pred.upr = Y0_hat + se.Y0_hat * qt0.025
+
+data.frame( Y0_hat, pred.lwr, pred.upr )
+```
+
+# 모형 진단
+```{r}
+rm( list = ls() )
+url = 'http://www.statsci.org/data/general/hills.txt'
 
 
 
-
-
+```
 
 
 
