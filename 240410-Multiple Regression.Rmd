@@ -139,15 +139,6 @@ pred.upr = Y0_hat + se.Y0_hat * qt0.025
 data.frame( Y0_hat, pred.lwr, pred.upr )
 ```
 
-# 모형 진단
-##
-```{r}
-rm( list = ls() )
-url = 'http://www.statsci.org/data/general/hills.txt'
-races.table = read.table( url, header = TRUE, sep = "\t" )
-
-plot(races.table[,-1], col = "orange")
-```
 
 
 
