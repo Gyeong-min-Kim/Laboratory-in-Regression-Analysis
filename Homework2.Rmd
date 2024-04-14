@@ -1,0 +1,131 @@
+---
+title: 'Homework Assignment2'
+author: "김경민(20210344)"
+header-includes:
+  - \usepackage{kotex}
+output: 
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+\newpage
+
+
+#  Question 1
+## Ozone Data
+```{r}
+library( ElemStatLearn )
+data( ozone )
+n = nrow( ozone ) ; p = 1
+
+head( ozone )
+```
+
+회귀식 $\text{ozone}_i = \beta_0 + \beta_1 \text{wind}_i + \epsilon_i$의 설명변수와 반응변수는 다음과 같이 만들 수 있다.
+
+* `y`: Ozone  벡터 $\in \mathbb{R}^n$
+* `X`: Wind 벡터 $\in \mathbb{R}^n$ 
+
+```{r}
+y = ozone$ozone 
+x = ozone$wind 
+```
+
+
+뒤에서 confidence interval과 predict interval 을 구할 때 필요한 $\hat{\beta_0}, \hat{\beta_1}, \hat{\sigma}^2$을 계산하자.
+
+- `Sxx`: $S_{xx}$
+- `Sxy`: $S_{xy}$
+- `beta1_hat`: $\hat{\beta}_1$
+- `beta0_hat`: $\hat{\beta}_0$
+- `sse` : SSE
+- `sigma2_hat`: $\hat{\sigma}^2$
+```{r}
+Sxx = sum( (x - mean(x))^2 )
+Sxy = sum( (x - mean(x))*(y - mean(y)) )
+
+beta1_hat = Sxy / Sxx
+beta0_hat = mean(y) - beta1_hat * mean(x)
+
+sse = sum( (y - ( beta0_hat + beta1_hat * x ) )^2 )
+sigma2_hat = sse / (n - ( p + 1 ))
+
+
+data.frame( beta0_hat, beta1_hat, sigma2_hat )
+```
+
+\newpage
+
+## 1.1 Combine the results and make a dataframe `res` with columns.
+
+- `wind`: the sequence of $x$
+
+### Sequence of predictor
+```{r}
+xval = data.frame( wind = seq( min( ozone$wind ), max( ozone$wind), length.out = 20 ) )
+c(head( xval ) , tail( xval ) )
+```
+
+
+
+
+### Confidence interval 
+Mean response $\hat{\mu}_0 = \hat{\beta}_0 + \hat{\beta}_1 x_0$의 표준오차 $\text{SE}\left( \hat{\mu}_0\right)$는 $\sqrt{\hat{\sigma}^2 \left( \frac{1}{n} + \frac{ \left(x_0 - \bar{x}\right)^2 }{S_{xx}}\right)}$이다. 따라서  confidence interval의 하한은 $\hat{\mu}_0 - t_{n-2, 1-\alpha / 2} \times \text{SE} \left( \hat{\mu}_0 \right)$이고 상한은 $\hat{\mu}_0 + t_{n-2, 1-\alpha / 2} \times \text{SE} \left( \hat{\mu}_0 \right)$이다. 
+
+- `qt0.025`: $t_{n-2,\, 0.025}$
+- `se.fit`: $\text{SE}\left( \hat{\mu}_0\right)$
+- `conf.lwr`: the lower limit of the confidence interval
+- `conf.upr`: the upper limit of the confidence interval
+```{r}
+qt0.025 = qt(p = 0.025, df = n-2, lower.tail = FALSE)
+
+conf.lwr = rep( 0, 20 ) ; conf.upr = rep( 0, 20 )
+for( i in 1:20 ){
+  se.fit = sqrt( sigma2_hat * ( (1/n) + (xval[i,1] - mean(x))^2 / Sxx ) )
+  conf.lwr[i] = beta0_hat + beta1_hat * xval[i,1] - qt0.025 * se.fit 
+  conf.upr[i] = beta0_hat + beta1_hat * xval[i,1] + qt0.025 * se.fit 
+}
+
+cbind(head( conf.lwr ), head( conf.upr ))
+```
+\newpage
+
+### Predict interval 
+Prediction value of the response $\hat{Y}_0 = \hat{\beta}_0 + \hat{\beta}_1 x_0 + \epsilon_0$의 표준오차 $\text{SE}\left( \hat{Y}_0\right)$는 $\sqrt{\hat{\sigma}^2 \left( 1 + \frac{1}{n} + \frac{ \left(x_0 - \bar{x}\right)^2 }{S_{xx}}\right)}$이다. 따라서  confidence interval의 하한은 $\hat{Y}_0 - t_{n-2, 1-\alpha / 2} \times \text{SE} \left( \hat{Y}_0 \right)$이고 상한은 $\hat{Y}_0 + t_{n-2, 1-\alpha / 2} \times \text{SE} \left( \hat{Y}_0 \right)$이다. 
+
+- `qt0.025`: $t_{n-2,\, 0.025}$
+- `se.pred`: $\text{SE}\left( \hat{Y}_0\right)$
+- `pred.lwr`: the lower limit of the prediction interval
+- `pred.upr`: the upper limit of the prediction interval
+
+
+```{r}
+qt0.025 = qt(p = 0.025, df = n-2, lower.tail = FALSE)
+
+pred.lwr = rep( 0, 20 ) ; pred.upr = rep( 0, 20 )
+for( i in 1:20 ){
+  se.pred = sqrt( sigma2_hat * ( 1 + (1/n) + (xval[i,1] - mean(x))^2 / Sxx ) )
+  pred.lwr[i] = beta0_hat + beta1_hat * xval[i,1] - qt0.025 * se.pred 
+  pred.upr[i] = beta0_hat + beta1_hat * xval[i,1] + qt0.025 * se.pred 
+}
+```
+
+
+### Make a dataframe `res`
+```{r}
+res = data.frame( "wind" = xval,
+                  "conf.lwr" = conf.lwr,
+                  "conf.upr" = conf.upr,
+                  "pred.lwr" = pred.lwr,
+                  "pred.upr" = pred.upr )
+
+res
+```
+
+
+
+
