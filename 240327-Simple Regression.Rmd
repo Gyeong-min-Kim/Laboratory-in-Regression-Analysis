@@ -1,0 +1,108 @@
+---
+title: "Untitled"
+author: "Kim Gyeong-min"
+date: "2024-03-27"
+output: html_document
+---
+
+```{r}
+# install.packages("ElemStatLearn") ; 옛날버전 R에서만 사용 가능
+# install.packages("devtools")
+# 방법1
+library(devtools)
+install_version( package = "ElemStatLearn", version = "2015.6.26.2")
+
+# 방법2 
+devtools::install_version( package = "ElemStatLearn", version = "2015.6.26.2") #library해보고하기
+
+# 데이터 다운
+library(ElemStatLearn)
+data("prostate")
+head(prostate) # gleason 이랑 train 변수는 사용안함
+```
+
+
+```{r}
+n = nrow( prostate )
+
+# X = cbind(rep(1, nrow(iris)), iris$Sepal.Length, iris$Sepal.Width )
+attach( prostate ) # 원래는 prostate안에 있는 변수 lcavol같은것들을 그냥 lcavol로 못 불러옴
+X = cbind( rep(1,n), lcavol, lweight, age, lbph, svi, lcp, pgg45) # 비추천: 원래변수와 중첩되어서
+colnames(X)[1] = "(intercept)"
+Y = matrix( lpsa ) # matrix로 가져오는게 좋음
+detach( prostate ) # attach하고 나서 꼭 detach하기
+
+head( X )
+
+# 베타 추정량 구하기
+beta_hat = solve( t(X) %*% X ) %*% t(X) %*% Y 
+beta_hat
+
+# 적합값(fitted value) 구하기
+Y_hat = X %*% beta_hat # sum( (Y - Y_hat)^2 ), R에서 행렬곱은 계산하는데 더 오래 걸림
+
+# SSE와 sigma^2 추정량 구하기
+p = ncol(X) - 1 # p: 절편항 뺀 나머지 회귀계수의 갯수
+SSE = crossprod( Y - Y_hat )
+sigma2_hat = SSE / ( n - ( p + 1 )) 
+sigma_hat = sqrt( sigma2_hat )
+sigma_hat
+round( sigma_hat, digits = 3 ) # 3번째 자리에서 반올림
+
+```
+
+# SST, SSR, SSE 구하기
+```{r}
+SST = sum( ( Y - mean(Y) )^2 )
+MST = SST / ( n - 1 )
+
+SSE = sum( ( Y - Y_hat )^2 )
+MSE = SSE / ( n - ( p + 1 ) )
+
+SSR = sum( ( Y_hat - mean(Y) )^2 )
+MSR = SSR / p
+
+print( data.frame(SST, SSR, SSE) )
+print( data.frame(MST, MSR, MSE) )
+
+R2 = 1 - SSE / SST
+adjusted_R2 = 1 - MSE / MST
+
+
+
+# ANOVA table 구하기
+source = c( "Regression", "Error", "total" )
+df = c( p, n - ( p + 1 ), n - 1 )
+SS = c( SSR, SSE, SST )
+MS = c( MSR, MSE, MST )
+F_stat = c( MSR / MSE , NA, NA )
+data.frame( source, df, SS, MS, F_stat ) # data.frame은 col별로 원소가 들어감
+
+
+data.frame( source = c( "Regression", "Error", "total" ),
+            df = c( p, n - ( p + 1 ), n - 1 ),
+            SS = c( SSR, SSE, SST ),
+            MS = c( MSR, MSE, MST ),
+            F_stat = c( MSR / MSE , NA, NA ) ) # "-" 같은거 넣어도 되긴하는데 그냥 NA 넣는게 좋음
+
+# df 먼저 구하고 데이터프레임에 넣음 -> 그리고 SS들 다 구해서 프레임에 넣고 ss를 df로 그냥 벡터로 나무어서 MS만들어서 구함
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
