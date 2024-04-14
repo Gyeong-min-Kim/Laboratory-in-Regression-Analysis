@@ -126,6 +126,70 @@ res = data.frame( "wind" = xval,
 res
 ```
 
+\newpage
+
+
+# Question 2
+## Ozone Data
+```{r}
+rm(list = ls())
+library(ElemStatLearn)
+data(ozone)
+n = nrow( ozone )
+p = 3
+
+y = matrix( ozone$ozone )
+X = cbind( "(intercept)" = rep(1,n),
+           "wind" = ozone$wind,
+           "temperature" = ozone$temperature,
+           "radiation" = ozone$radiation )
+
+beta_hat = solve( t(X) %*% X ) %*% t(X) %*% y
+data.frame( beta_hat )
+
+y_hat = X %*% beta_hat
+resid = y - y_hat
+SSE = sum( resid^2 )
+SST = sum( (y - mean(y))^2 )
+SSR = SST - SSE
+fstat_1 = SSR/SSE
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
