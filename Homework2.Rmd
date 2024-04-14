@@ -152,7 +152,18 @@ resid = y - y_hat
 SSE = sum( resid^2 )
 SST = sum( (y - mean(y))^2 )
 SSR = SST - SSE
-fstat_1 = SSR/SSE
+
+
+
+# Anova Table
+Source = c( "Regression", "Error", "Total" )
+df = c( p, n - ( p + 1 ), n - 1 )
+SS = c( SSR, SSE, SST )
+MS = c( SSR / p, SSE / ( n - ( p + 1 ) ), NA )
+Fstat = c(MS[1] / MS[2], NA, NA)
+
+data.frame( Source,df, SS, MS, Fstat )
+fstat1 = Fstat[1] 
 
 
 
