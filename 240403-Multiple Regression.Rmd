@@ -1,0 +1,135 @@
+---
+title: '240403'
+author: "Kim Gyeong-min"
+date: "2024-04-02"
+output: html_document
+---
+
+```{r}
+library( ElemStatLearn )
+data( prostate )
+n = nrow(prostate)
+
+X = cbind( "(intercept)" = rep(1, n), 
+           "lcavol" = prostate$lcavol,
+           "lweight" = prostate$lweight,
+           "age" = prostate$age,
+           "lbph" = prostate$lbph,
+           "svi" = prostate$svi,
+           "lcp" = prostate$lcp,
+           "pgg45" = prostate$pgg45 )
+
+Y = matrix(prostate$lpsa) ## 
+p = ncol(X) - 1
+
+beta_hat = solve( t(X) %*% X ) %*% t(X) %*% Y
+
+Y_hat = X %*% beta_hat
+SSE = crossprod(Y - Y_hat)  # residual = Y - X %*% beta_hat -> sum(residual^2) 
+sigma2_hat = as.numeric( SSE / ( n -( p + 1 ) ) )
+
+
+cov_beta_hat = sigma2_hat * solve( t(X) %*% X )
+se = sqrt(diag(cov_beta_hat))
+
+
+Estimate = beta_hat
+Std.Error = se
+t.value = c(0)
+for( i in 1: ( p + 1 )){
+  t.value[i] = beta_hat[i] / sqrt(diag(cov_beta_hat)[i])
+}  
+  
+p.value = 2 * pt( df = n - ( p + 1 ), abs(t.value), lower.tail = FALSE )  # abs(t.value)------------------------------
+round(p.value, 3)  
+
+
+coef_table = data.frame( Estimate, Std.Error, t.value, p.value ) # cbind 해보기
+print(coef_table, digits = 3) #
+
+```
+
+
+
+
+
+
+
+```{r}
+resid = Y - X %*% beta_hat
+SSE = sum(resid^2)
+SST = sum((Y - mean(Y))^2)
+SSR = SST - SSE
+
+# sse_f = sse
+
+X_r = cbind( "(intercept)" = rep(1, n), 
+             "lcavol" = prostate$lcavol,
+             "lweight" = prostate$lweight,
+             "age" = prostate$age,
+             "lbph" = prostate$lbph,
+             "svi" = prostate$svi) 
+
+n_r = n
+p_r = ncol(X_r) - 1
+
+beta_hat_r = solve(t(X_r) %*% X_r) %*% t(X_r) %*% Y
+
+resid_r = Y - X_r %*% beta_hat_r
+SSE_r = sum(resid_r^2)
+SSR_r = SST - SSE_r
+
+
+F_statis = ( (SSR - SSR_r) / (p - p_r) ) / ( SSE / (n - ( p + 1 )) ) # 1.372057
+
+pf( q = F_statis, df1 = p - p_r, df2 = n - ( p + 1 ), lower.tail = FALSE ) # 0.2588958
+qf( p = 0.05, df1 = p - p_r, df2 = n - ( p + 1 ), lower.tail = FALSE ) # 3.09887
+
+
+
+#A = cbind( (intercept) = rep(1, n), 
+##             lcavol = prostate$lcavol,
+#             lweight = prostate$lweight,
+#             age = prostate$age,
+#             lbph = prostate$lbph,
+#             svi = prostate$svi)
+
+
+#B = cbind( rep(1, n), 
+#           prostate$lcavol,
+#           prostate$lweight,
+#           prostate$age,
+#           prostate$lbph,
+#           prostate$svi)#
+
+#colnames(B[0]) = "intercept"
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
