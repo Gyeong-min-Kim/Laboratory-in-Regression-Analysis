@@ -87,24 +87,6 @@ qf( p = 0.05, df1 = p - p_r, df2 = n - ( p + 1 ), lower.tail = FALSE ) # 3.09887
 
 
 
-#A = cbind( (intercept) = rep(1, n), 
-##             lcavol = prostate$lcavol,
-#             lweight = prostate$lweight,
-#             age = prostate$age,
-#             lbph = prostate$lbph,
-#             svi = prostate$svi)
-
-
-#B = cbind( rep(1, n), 
-#           prostate$lcavol,
-#           prostate$lweight,
-#           prostate$age,
-#           prostate$lbph,
-#           prostate$svi)#
-
-#colnames(B[0]) = "intercept"
-
-
 ```
 
 
