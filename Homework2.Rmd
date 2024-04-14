@@ -143,7 +143,10 @@ X = cbind( "(intercept)" = rep(1,n),
            "wind" = ozone$wind,
            "temperature" = ozone$temperature,
            "radiation" = ozone$radiation )
+```
 
+## 1.1 Compute the 𝐹-statistic using SSE and SSR of the full model and save it in fstat_1.
+```{r}
 beta_hat = solve( t(X) %*% X ) %*% t(X) %*% y
 data.frame( beta_hat )
 
@@ -153,31 +156,36 @@ SSE = sum( resid^2 )
 SST = sum( (y - mean(y))^2 )
 SSR = SST - SSE
 
-
-
 # Anova Table
 Source = c( "Regression", "Error", "Total" )
 df = c( p, n - ( p + 1 ), n - 1 )
 SS = c( SSR, SSE, SST )
 MS = c( SSR / p, SSE / ( n - ( p + 1 ) ), NA )
-fstat_1 = c(MS[1] / MS[2], NA, NA)
+Fstat = c(MS[1] / MS[2], NA, NA)
 
-data.frame( Source,df, SS, MS, Fstat = fstat_1 )
+data.frame( Source,df, SS, MS, Fstat )
+fstat_1 = Fstat[1] 
 fstat_1
-
-
 ```
+\textcolor{red}{답은 `r fstat_1`이다.}
+
 
 ## 1.2 Compute the F-statisticc and save it fstat_2
 ```{r}
 X_r = matrix(X[,1])
-beta_hat_r = solve( t(X_r)%*% X_r ) %*% t(X_r) %*% y 
+beta_hat_r = as.numeric(solve( t(X_r)%*% X_r ) %*% t(X_r) %*% y) 
+
+SSE_r = sum( (y - X_r * beta_hat_r)^2 )
+SST_r = SST 
+SSR_r = SST_r - SSE_r
+
+fstat_2 = (( SSE_r - SSE ) / p) / ( SSE / (n - ( p + 1 ) ) )
+fstat_2
 ```
+\textcolor{red}{답은 54.9066261로 문제 2.1번에서 구한 값과 동일하다.}
 
 
-
-
-
+## 1.3 Since SSE(RM) = SST, we know that the two test statistics are analytically same. How about the two statistics, fstat_1 and fstat_2?
 
 
 
