@@ -160,15 +160,19 @@ Source = c( "Regression", "Error", "Total" )
 df = c( p, n - ( p + 1 ), n - 1 )
 SS = c( SSR, SSE, SST )
 MS = c( SSR / p, SSE / ( n - ( p + 1 ) ), NA )
-Fstat = c(MS[1] / MS[2], NA, NA)
+fstat_1 = c(MS[1] / MS[2], NA, NA)
 
-data.frame( Source,df, SS, MS, Fstat )
-fstat1 = Fstat[1] 
-
+data.frame( Source,df, SS, MS, Fstat = fstat_1 )
+fstat_1
 
 
 ```
 
+## 1.2 Compute the F-statisticc and save it fstat_2
+```{r}
+X_r = matrix(X[,1])
+beta_hat_r = solve( t(X_r)%*% X_r ) %*% t(X_r) %*% y 
+```
 
 
 
