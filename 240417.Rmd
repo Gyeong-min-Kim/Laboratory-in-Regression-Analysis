@@ -1,0 +1,81 @@
+---
+title: "Untitled"
+author: "Kim Gyeong-min"
+date: "2024-04-17"
+output: html_document
+---
+* data.frame 쓰면 범주형변수도 자연스럽게 저장 가능함, 근데 data.frame은 역행렬 계산할 때 문제 생길수도
+* matrix 쓰면 범주형자료 들어올때 자른 수자형자료들도 범주형으로 바뀜
+
+```{r}
+# Data
+url = 'http://www.statsci.org/data/general/hills.txt'
+races.table = read.table( url, header = TRUE, sep = "\t" )
+n = nrow( races.table )
+p = 2
+
+
+y = matrix( races.table$Time )
+X = cbind( "(intercept)" = rep( 1, n ),     
+           distance = races.table$Distance, 
+           climb = races.table$Climb )      
+
+
+# beta_hat and matrix H
+beta_hat = solve( t(X) %*% X ) %*% t(X) %*% y 
+ord_resid = y - X %*% beta_hat
+H = X %*% solve( t(X) %*% X) %*% t(X)
+dim(H)
+
+
+# Internally studentized residual
+SSE = sum( ord_resid^2 )
+sigma2_hat = SSE / ( n - ( p + 1 ) )
+internal_resid = ord_resid / sqrt( sigma2_hat * ( 1 - diag(H) ) )  #### 벡터의 몫은 원소별로 해줌
+dim(internal_resid)
+
+
+# Externally studentized residual
+external_resid = rep( 0, n ) 
+for ( i in 1:n ){
+  y_i = y[ -i ]
+  X_i = X[ -i, ]
+  
+  beta_hat_tilde = solve( t(X_i) %*% X_i ) %*% t( X_i ) %*% y_i
+  SSE_i = sum( (y_i - X_i %*% beta_hat_tilde)^2 )
+  
+  sigma2_hat_i = SSE_i / ( ( n - 1 ) - ( p + 1 ) )
+  external_resid[i] = ord_resid[i] / sqrt( sigma2_hat_i*( 1 - H[i,i] ) )
+}
+length(external_resid)
+
+
+# data.frame
+round(data.frame( ord_resid, internal_resid, external_resid ), 4)
+```
+
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
