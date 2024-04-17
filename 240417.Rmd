@@ -37,17 +37,27 @@ dim(internal_resid)
 
 # Externally studentized residual
 external_resid = rep( 0, n )  ## c()
+sigma2_hat_is = c()
+beta_hat_tildes = matrix( nrow = p + 1, ncol = n)
 for ( i in 1:n ){
   y_i = matrix( y[ -i ] )   ##
   X_i = X[ -i, ]
   
   beta_hat_tilde = solve( t(X_i) %*% X_i ) %*% t( X_i ) %*% y_i
+  beta_hat_tildes[,i] = beta_hat_tilde 
+  
   SSE_i = sum( ( y_i - X_i %*% beta_hat_tilde )^2 )
   
   sigma2_hat_i = SSE_i / ( ( n - 1 ) - ( p + 1 ) )
+  sigma2_hat_is[i] = sigma2_hat_i
+  
   external_resid[i] = ord_resid[i] / sqrt( sigma2_hat_i*( 1 - H[i,i] ) )
 }
+
 length(external_resid)
+beta_hat_tildes
+
+
 
 
 # data.frame
@@ -55,16 +65,60 @@ round(data.frame( ord_resid, internal_resid, external_resid ), 4)
 # for문으로 sigma2_hat_i를 아예 벡터로 저장한후에 for문 밖으로 나와서 extrnal_resid 구할 수도 있음
 ```
 
-
+# plot
 ```{r}
 plot( ord_resid, external_resid, pch = 19, col = "blue" )
 ```
 
 
+# DFFITS
+```{r}
+H
+DFFITS = c()
+for ( i in 1:n ){
+  y_i = matrix( y[ -i ] )   
+  X_i = X[ -i, ]
+  
+  beta_hat_tilde = solve( t(X_i) %*% X_i ) %*% t( X_i ) %*% y_i
+  SSE_i = sum( ( y_i - X_i %*% beta_hat_tilde )^2 )
+  
+  sigma2_hat_i = SSE_i / ( ( n - 1 ) - ( p + 1 ) )
+  
+  DFFITS[i] = ( X[i,] %*% beta_hat_tilde - X[i,] %*% beta_hat ) / sqrt( sigma2_hat_i * H[i,i]  )
+}
+
+sum( abs(DFFITS) > 1 )
+
+plot( abs(DFFITS) )
+abline( h = 1, col = "red" )
+```
 
 
 
+# Cook's distance (다시)
+```{r}
+H
+sigma2_hat
 
+beta_hat_tildes = matrix( ncol = n, nrow = p + 1 )
+for( i in 1:n ){
+  y_i = matrix( y[-i] )
+  X_i = X[ -i, ]
+  
+  beta_hat_tildes[, i] = solve( t(X_i) %*% X_i ) %*% t(X_i) %*% y_i
+}
+
+cook_dist = c()
+for( i in 1:n ){
+  cook_dist[i] = sum((X %*% beta_hat_tildes[,i] - X %*% beta_hat)^2) / (sigma2_hat*(p+1))
+}
+
+# Yfit = X %*% beta_hat 
+# Yfit_tilde = X %*% beta_hat_tilde 얘네 둘의 차이의 제곱합이 쿡스의 분자임
+
+plot(abs(cook_dist))
+abline ( h = qf( p = 0.5, df1 = p + 1 , df2 = n - ( p + 1 ) ), col = "red" )
+```
 
 
 
