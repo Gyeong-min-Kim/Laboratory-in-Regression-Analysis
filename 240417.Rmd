@@ -36,13 +36,13 @@ dim(internal_resid)
 
 
 # Externally studentized residual
-external_resid = rep( 0, n ) 
+external_resid = rep( 0, n )  ## c()
 for ( i in 1:n ){
-  y_i = y[ -i ]
+  y_i = matrix( y[ -i ] )   ##
   X_i = X[ -i, ]
   
   beta_hat_tilde = solve( t(X_i) %*% X_i ) %*% t( X_i ) %*% y_i
-  SSE_i = sum( (y_i - X_i %*% beta_hat_tilde)^2 )
+  SSE_i = sum( ( y_i - X_i %*% beta_hat_tilde )^2 )
   
   sigma2_hat_i = SSE_i / ( ( n - 1 ) - ( p + 1 ) )
   external_resid[i] = ord_resid[i] / sqrt( sigma2_hat_i*( 1 - H[i,i] ) )
@@ -52,11 +52,12 @@ length(external_resid)
 
 # data.frame
 round(data.frame( ord_resid, internal_resid, external_resid ), 4)
+# for문으로 sigma2_hat_i를 아예 벡터로 저장한후에 for문 밖으로 나와서 extrnal_resid 구할 수도 있음
 ```
 
 
 ```{r}
-
+plot( ord_resid, external_resid, pch = 19, col = "blue" )
 ```
 
 
