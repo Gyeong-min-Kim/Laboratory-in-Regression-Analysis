@@ -62,9 +62,8 @@ data.frame( beta0_hat, beta1_hat, sigma2_hat )
 
 ## 1.1 Combine the results and make a dataframe `res` with columns.
 
-- `wind`: the sequence of $x$
-
 ### Sequence of predictor
+* `xval` : Sequence of predictor
 ```{r}
 xval = data.frame( wind = seq( min( ozone$wind ), max( ozone$wind), length.out = 20 ) )
 c(head( xval ) , tail( xval ) )
@@ -78,13 +77,13 @@ Mean response $\hat{\mu}_0 = \hat{\beta}_0 + \hat{\beta}_1 x_0$의 표준오차 
 
 - `qt0.025`: $t_{n-2,\, 0.025}$
 - `se.fit`: $\text{SE}\left( \hat{\mu}_0\right)$
-- `conf.lwr`: the lower limit of the confidence interval
-- `conf.upr`: the upper limit of the confidence interval
+- `conf.lwr`: confidence interval의 하한
+- `conf.upr`: the confidence interval의 상한
 ```{r}
 qt0.025 = qt(p = 0.025, df = n-2, lower.tail = FALSE)
 
-conf.lwr = rep( 0, 20 ) ; conf.upr = rep( 0, 20 )
-for( i in 1:20 ){
+conf.lwr = rep( 0, 20 ) ; conf.upr = rep( 0, 20 ) # 먼저 빈 벡터 만들어주기
+for( i in 1:20 ){                                 # 그리고 벡터에 값 넣어주기
   se.fit = sqrt( sigma2_hat * ( (1/n) + (xval[i,1] - mean(x))^2 / Sxx ) )
   conf.lwr[i] = beta0_hat + beta1_hat * xval[i,1] - qt0.025 * se.fit 
   conf.upr[i] = beta0_hat + beta1_hat * xval[i,1] + qt0.025 * se.fit 
@@ -99,15 +98,15 @@ Prediction value of the response $\hat{Y}_0 = \hat{\beta}_0 + \hat{\beta}_1 x_0 
 
 - `qt0.025`: $t_{n-2,\, 0.025}$
 - `se.pred`: $\text{SE}\left( \hat{Y}_0\right)$
-- `pred.lwr`: the lower limit of the prediction interval
-- `pred.upr`: the upper limit of the prediction interval
+- `pred.lwr`: prediction interval의 하한
+- `pred.upr`: prediction interval의 상한
 
 
 ```{r}
 qt0.025 = qt(p = 0.025, df = n-2, lower.tail = FALSE)
 
-pred.lwr = rep( 0, 20 ) ; pred.upr = rep( 0, 20 )
-for( i in 1:20 ){
+pred.lwr = rep( 0, 20 ) ; pred.upr = rep( 0, 20 )  # 먼저 빈 벡터 만들어주기
+for( i in 1:20 ){                                  # 그리고 벡터에 값 넣어주기
   se.pred = sqrt( sigma2_hat * ( 1 + (1/n) + (xval[i,1] - mean(x))^2 / Sxx ) )
   pred.lwr[i] = beta0_hat + beta1_hat * xval[i,1] - qt0.025 * se.pred 
   pred.upr[i] = beta0_hat + beta1_hat * xval[i,1] + qt0.025 * se.pred 
@@ -149,30 +148,36 @@ X = cbind( "(intercept)" = rep(1,n),
 
 ## 1.1 Compute the 𝐹-statistic using SSE and SSR of the full model and save it in fstat_1.
 ```{r}
-beta_hat = solve( t(X) %*% X ) %*% t(X) %*% y
+beta_hat = solve( t(X) %*% X ) %*% t(X) %*% y # 베타 추정량
 data.frame( beta_hat )
 
-y_hat = X %*% beta_hat
-resid = y - y_hat
-SSE = sum( resid^2 )
-SST = sum( (y - mean(y))^2 )
-SSR = SST - SSE
+y_hat = X %*% beta_hat       # y의 적합값
+resid = y - y_hat            # 잔차
+SSE = sum( resid^2 )         # SSE
+SST = sum( (y - mean(y))^2 ) # SST
+SSR = SST - SSE              # SSR
 
 # Anova Table
 Source = c( "Regression", "Error", "Total" )
 df = c( p, n - ( p + 1 ), n - 1 )
 SS = c( SSR, SSE, SST )
 MS = c( SSR / p, SSE / ( n - ( p + 1 ) ), NA )
-Fstat = c(MS[1] / MS[2], NA, NA)
+Fstat = c( MS[1] / MS[2], NA, NA )
 
 data.frame( Source,df, SS, MS, Fstat )
-fstat_1 = Fstat[1] 
+fstat_1 = Fstat[1] # F 통계량
 fstat_1
 ```
 \textcolor{red}{답은 `r fstat_1`이다.}
 
 
 ## 1.2 Compute the F-statisticc and save it fstat_2
+* `X_r` : reduced model에서의 디자인 행렬 즉, `X`에서 두번째와 세번쩨 열을 제거한 행렬
+* `beta_hat_r` : reduced model에서의 베타 추정량
+* `SSE_r` : reduced model에서의 SSE
+* `SSR_r` : reduced model에서의 SSR
+* `SST_r` : reduced model에서의 SST
+* `fstat_2` : reduced model에서의 F 통계량
 ```{r}
 X_r = matrix(X[,1])
 beta_hat_r = as.numeric(solve( t(X_r)%*% X_r ) %*% t(X_r) %*% y) 
@@ -181,7 +186,7 @@ SSE_r = sum( (y - X_r * beta_hat_r)^2 )
 SST_r = SST 
 SSR_r = SST_r - SSE_r
 
-fstat_2 = (( SSE_r - SSE ) / p) / ( SSE / (n - ( p + 1 ) ) )
+fstat_2 = ( ( SSE_r - SSE ) / p) / ( SSE / ( n - ( p + 1 ) ) )
 fstat_2
 ```
 \textcolor{red}{답은 54.9066261로 문제 2.1번에서 구한 값과 동일하다.}
@@ -195,7 +200,7 @@ $$
                = \dfrac{\left( \text{SST}_{FM} - \text{SSE}_{FM} \right) / \left( \text{df}_{RM} - \text{df}_{FM} \right)}{\text{SSE}_{FM} / \text{df}_{FM}} 
                = \dfrac{ \text{SSR}_{FM} / p}{\text{SSE}_{FM} / n - \left( p+1\right)} 
 $$
-결과적으로 `fstat_1`과 `fstat_2`가 같음을 알 수 있다.
+여기서 가장 왼쪽의 좌변은 `fstat_1`이고 아강 오른쪽의 우변은 `fstat_2`이다. 결과적으로 `fstat_1`과 `fstat_2`가 같음을 알 수 있다.
 
 
 
