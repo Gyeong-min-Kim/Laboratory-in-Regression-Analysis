@@ -131,6 +131,8 @@ res
 
 # Question 2
 ## Ozone Data
+`y`: 종속변수
+`x`: 설명변수들로 이루어진 디자인 매트릭스
 ```{r}
 rm(list = ls())
 library(ElemStatLearn)
